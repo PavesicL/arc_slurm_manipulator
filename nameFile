@@ -12,6 +12,7 @@ params{
 
 #PARSING RESULTS
 #results will be saved into text files, with given path
+
 get_energies{
 	path = home/pavesic/test/a.txt
 	sweep gamma

@@ -262,14 +262,15 @@ def writeBatchScript(batchDict, jobname):
 				job.writelines("export OMP_NUM_THREADS={0}\n".format(batchDict["OMP_NUM_THREADS"]))	
 			if "ml" in batchDict:
 				job.writelines("ml "+ batchDict["ml"] + "\n")
-			
+		
+			job.writelines("./{}}\n".format(scriptname))
+
+	
 		else:
 			print("Environment variable WHICHSYSTEM is not correct! It has to be one of slurmmaister, slurmmaisterspinon, slurmNSC!")
 			print("Currently, it is: {}".format(WHICHSYSTEM))
 			exit()		
 		
-		job.writelines("./script\n")
-
 
 	return None
 
