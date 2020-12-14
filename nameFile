@@ -1,0 +1,18 @@
+#SENDING JOBS
+#give a name in the python formatted string format and specify the parameters and their types (sweep or case-by-case)
+
+name = U1_Ec{0}_gamma{1}_n01{2}_n02{3}
+
+params{ 
+	Ec case
+	gamma sweep
+	n01 relation
+	n02 relation
+}endparams
+
+#PARSING RESULTS
+#results will be saved into text files, with given path
+get_energies{
+	path = home/pavesic/test/a.txt
+	sweep gamma
+}
