@@ -79,8 +79,11 @@ def nameToRegex(name):
 	"""
 	Replace all instances of {number} in the name with ([0-9]+.*[0-9]*), which matches floats and ints
 	"""
-	return re.sub("{[0-9]+}", "(-*[0-9]+\.*[0-9]*)", name)	#replace all instances of {number} in the name with ([0-9]+.*[0-9]*), which matches floats and ints
-
+	#OLD return re.sub("{[0-9]+}", "(-*[0-9]+\.*[0-9]*)", name)	#replace all instances of {number} in the name with ([0-9]+.*[0-9]*), which matches floats and ints
+	
+	return re.sub("{[0-9]+}", "([+-]?[0-9]+(?:\.?[0-9]*(?:[eE][+-]?[0-9]+)?)?)", name)	#replace all instances of {number} in the name with ([0-9]+.*[0-9]*), which matches floats and ints. Also allows 
+																				#for scientific notation, eg. 1e-6.
+																				
 #####################################################################################################
 
 def getParamsNameFile(file):
@@ -164,7 +167,7 @@ def nameToParamsVals(jobname, nameFile="nameFile"):
 	name, paramsDict = getParamsNameFile(nameFile)
 	regexName = nameToRegex(name)		
 
-	i=0	
+	i=0
 	a = re.search(regexName, jobname)	#match the regexname with the jobname
 	for p in paramsDict.values():
 		i+=1
@@ -179,11 +182,13 @@ def editInputFile(paramDict):
 	Copies the SAMPLEinputFile, except the parameters in paramDict, which are changed to their values.
 	"""
 	#DMRG SPECIFIC!
-	Delta=0.026
+
+	DELTA = getDeltaFromNameFile("nameFile")
+
 	for paramName in paramDict:
 		if paramName == "Ec" or paramName == "Ec1" or paramName == "Ec2":
 			p = paramDict[paramName]
-			p.set_single_value(p.values * 0.026)
+			p.set_single_value(p.values * DELTA)
 
 	with open("SAMPLEinputFile", "r") as sampleF:
 		with open("inputFile", "w+") as newF:
@@ -263,7 +268,7 @@ def writeBatchScript(batchDict, jobname):
 			if "ml" in batchDict:
 				job.writelines("ml "+ batchDict["ml"] + "\n")
 		
-			job.writelines("./{}}\n".format(scriptname))
+			job.writelines("./{}\n".format(scriptname))
 
 	
 		else:
@@ -273,6 +278,17 @@ def writeBatchScript(batchDict, jobname):
 		
 
 	return None
+
+
+def getDeltaFromNameFile(nameFile):
+
+	with open(nameFile, "r") as f:
+		for line in f:
+			a = re.search("DELTA\s*=\s*(.*)", line.strip())
+
+			if a:
+				DELTA = float(a.group(1))
+				return DELTA
 
 #####################################################################################################
 #THESE FUNCTIONS TAKE CARE OF THE PARAMETER VALUES WHICH ARE RELATED TO OTHER PARAMS

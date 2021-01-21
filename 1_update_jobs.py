@@ -10,8 +10,8 @@ from helper import *
 
 #get a regex general form of the name
 name, _ = getParamsNameFile("nameFile")
-regexName = re.sub("{[0-9]+}", "(-*[0-9]+\.*[0-9]*)", name)	#replace all instances of {number} in the name with ([0-9]+.*[0-9]*), which matches floats and ints
-
+#regexName = re.sub("{[0-9]+}", "(-*[0-9]+\.*[0-9]*)", name)	#replace all instances of {number} in the name with ([0-9]+.*[0-9]*), which matches floats and ints
+regexName = re.sub("{[0-9]+}", "([+-]?[0-9]+(?:\.?[0-9]*(?:[eE][+-]?[0-9]+)?)?)", name)
 #READ THE FILE WITH ALL REQUESTED JOBS TO A LIST
 f = open("jobsToSend.txt", "r")
 jobsToSend = [line.rstrip('\n') for line in f]	#strip the newline characters
@@ -43,12 +43,15 @@ for typ in countDict:
 	if os.path.exists(fileName):
 		os.remove(fileName)
 
+other=0
 #this writes each jobname to corresponding file, eg. a job with status Running is appended to runningJobs.txt
 for jobname in jobStatuses:
 	appendLineToFile(jobname, jobStatuses[jobname].lower()+"Jobs.txt")
-	countDict[jobStatuses[jobname]] += 1
-
+	try:
+		countDict[jobStatuses[jobname]] += 1
+	except KeyError:
+		other+=1
 
 print("Updated lists.")
-print("There is: {0} running, {1} queueing, {2} finished, {3} failed, {4} deleted, {5} vanished and {6} saved jobs; for a total of {7} jobs."
-	.format( countDict["Running"], countDict["Queuing"], countDict["Finished"], countDict["Failed"], countDict["Deleted"], countDict["Vanished"], countDict["Saved"], sum(countDict.values()) ))
+print("There is: {0} running, {1} queueing, {2} finished, {3} failed, {4} deleted, {5} vanished and {6} saved jobs, {7} unrecognized; for a total of {8} jobs."
+	.format( countDict["Running"], countDict["Queuing"], countDict["Finished"], countDict["Failed"], countDict["Deleted"], countDict["Vanished"], countDict["Saved"], other, other + sum(countDict.values()) ))
