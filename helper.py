@@ -197,7 +197,7 @@ def editInputFile(paramDict):
 
 				for p in paramDict.values(): #iterate over all params - check if one of them matches the line, then overwrite it
 
-					if re.search("\s+"+p.name+"\s*=", line):
+					if re.search("\s*"+p.name+"\s*=", line):
 						newF.write("	"+p.name+" = {0}\n".format(p.values))
 						written=True
 
@@ -279,7 +279,6 @@ def writeBatchScript(batchDict, jobname):
 
 	return None
 
-
 def getDeltaFromNameFile(nameFile):
 
 	with open(nameFile, "r") as f:
@@ -328,7 +327,8 @@ def getJobnameList(genericName, params):
 			noRelParams.append(p.values)
 	
 	allCombinations = list(itertools.product(*noRelParams))
-	print(allCombinations)
+	if len(allCombinations) < 20:
+		print(allCombinations)
 	res = addRelationsToList(allCombinations, params)
 
 	jobList=[]

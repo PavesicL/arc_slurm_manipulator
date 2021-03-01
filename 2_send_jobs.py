@@ -37,12 +37,13 @@ for job in failedJobs:
 
 #RESEND FAILED JOBS
 print("Sending failed...")
+
+
 count=1
 for job in failedJobs:
 	print("{0} {1}".format(count, job))
 	send(job)
 	count+=1
-
 
 #RESEND VANISHED jobs
 print("\nSending vanished...")
