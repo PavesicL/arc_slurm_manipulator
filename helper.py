@@ -504,7 +504,7 @@ def sendArc(job):
 	editSendJobxrsl(job)
 
 	#send job
-	os.system("arcsub -c maister.hpc-rivr.um.si sendjob.xrsl")
+	os.system("arcsub -c  sendjob.xrsl")
 
 	return None
 
