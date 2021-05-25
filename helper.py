@@ -474,7 +474,7 @@ def cleanSlurm(job):
 	"""
 	os.system("rm -r results/{0}/".format(job))
 
-def send(job):
+def send(job, cluster_sub_host):
 	"""
 	Sends a job with a given jobname.
 	"""
@@ -482,14 +482,14 @@ def send(job):
 	WHICHSYSTEM = os.environ["WHICHSYSTEM"]
 
 	if WHICHSYSTEM == "arc":
-		jobStatuses = sendArc(job)
+		jobStatuses = sendArc(job, cluster_sub_host)
 
 	elif re.match("slurm.*", WHICHSYSTEM):
 		jobStatuses = sendSlurm(job)
 
 	return None
 
-def sendArc(job):
+def sendArc(job, cluster_sub_host):
 	"""
 	Sends a job to maister hpc via arc.
 	"""
@@ -504,7 +504,8 @@ def sendArc(job):
 	editSendJobxrsl(job)
 
 	#send job
-	os.system("arcsub -c  sendjob.xrsl")
+	#os.system("arcsub -c maister.hpc-rivr.um.si sendjob.xrsl")	#sending to maister
+	os.system(f"arcsub -c {cluster_sub_host} sendjob.xrsl")
 
 	return None
 
