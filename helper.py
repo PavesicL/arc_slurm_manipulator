@@ -408,6 +408,11 @@ def getJobsSlurm(regexName, WHICHSYSTEM):
 	elif WHICHSYSTEM == "slurmNSC":
 		username = "lukap"
 
+	elif WHICHSYSTEM == "slurmvega":
+		username = "lukap"
+
+
+
 	#PARSE THE QUEUE
 	os.system('squeue -u {0} -o "%.100j %.12M" -h > statJobs.txt'.format(username))
 	f = open("statJobs.txt", "r")
