@@ -260,7 +260,7 @@ def writeBatchScript(batchDict, jobname):
 				job.writelines("singularity exec /ceph/sys/singularity/gimkl-2018b.simg {0}\n".format(scriptname))	
 
 
-		elif WHICHSYSTEM == "slurmspinon":
+		elif WHICHSYSTEM == "slurmspinon" or WHICHSYSTEM == "slurmvega":
 			if "path" in batchDict:
 				job.writelines("export PATH={0}:$PATH\n".format(batchDict["path"]))
 			if "OMP_NUM_THREADS" in batchDict:
