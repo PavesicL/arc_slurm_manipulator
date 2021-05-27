@@ -197,7 +197,7 @@ def editInputFile(paramDict):
 
 				for p in paramDict.values(): #iterate over all params - check if one of them matches the line, then overwrite it
 
-					if re.search("\s*"+p.name+"\s*=", line):
+					if re.search("^"+p.name+"\s*=", line.strip()):
 						newF.write("	"+p.name+" = {0}\n".format(p.values))
 						written=True
 
