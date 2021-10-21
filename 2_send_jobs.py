@@ -40,7 +40,7 @@ if os.path.exists("vanishedJobs.txt"):
 	f = open("vanishedJobs.txt", "r")
 	vanishedJobs = [line.rstrip('\n') for line in f]	#strip the newline characters
 else:
-		vanishedJobs=[]
+	vanishedJobs=[]
 
 #CLEAN FAILED JOBS
 print("Cleaning failed...")

@@ -1,12 +1,13 @@
-	#!/usr/bin/env python3
+#!/usr/bin/env python3
 
 """
 Functions used within the arc_manipulator scripts.
 """
 
 import os
-import sys
 import re
+import sys
+import math
 import parser
 import itertools
 
@@ -22,7 +23,16 @@ def myarange(start, stop, step):
 	for i in range(numsteps):
 		ll.append(round(start+i*step, 5))
 
+	ll.append(stop)	
+
 	return ll
+
+#####################################################################################################
+"""
+The parameter class is used for two things:
+	 when sending jobs, it is used to generate a parameter dictionary from a jobname. There we want to know the parameter name and its single value. 
+		This is then iterated over all 
+"""
 
 class parameter:
  
@@ -34,7 +44,7 @@ class parameter:
 
 	def set_single_value(self, value):
 		"""
-		Set the variable values to be a singlet float. Used in send_jobs.
+		Set the variable values to be a single float. Used in send_jobs.
 		"""
 		self.values = value	
 
@@ -51,6 +61,12 @@ class parameter:
 		elif self.sweeptype == "sweep":
 			start, stop, step = float(inVals[0]), float(inVals[1]), float(inVals[2])
 			self.values = [round(float(i), 6) for i in myarange(start, stop, step)]	
+			
+		elif self.sweeptype == "logsweep":
+			#this is a list of [start, start * r, start * r^2, ..., start * r^N], where N = numstep - 1. This gives r = (stop / start) ^ (1/N).
+			start, stop, numstep = float(inVals[0]), float(inVals[1]), int(inVals[2])
+			r = (stop/start)**(1/(numstep-1))
+			self.values = [ round(start * r**i, 6) for i in range(numstep) ]
 			
 		elif self.sweeptype == "relation":
 			self.values = inVals[0]
@@ -69,11 +85,20 @@ class parameter:
 			print("The parameter {0} is type sweep but did not get 3 values, but {1}!".format(self.name, len(inVals)))
 			exit()
 
+		elif self.sweeptype=="logsweep" and len(inVals)!=3:
+			print("The parameter {0} is type logsweep but did not get 3 values, but {1}!".format(self.name, len(inVals)))
+			exit()
+
 		elif self.sweeptype=="relation" and len(inVals)!=1:
 			print("The parameter {0} is type relation but did not get 1 value, but {1}!".format(self.name, len(inVals)))
 			exit()
 
 		return None	
+
+
+
+
+#####################################################################################################
 
 def nameToRegex(name):
 	"""
@@ -81,8 +106,7 @@ def nameToRegex(name):
 	"""
 	#OLD return re.sub("{[0-9]+}", "(-*[0-9]+\.*[0-9]*)", name)	#replace all instances of {number} in the name with ([0-9]+.*[0-9]*), which matches floats and ints
 	
-	return re.sub("{[0-9]+}", "([+-]?[0-9]+(?:\.?[0-9]*(?:[eE][+-]?[0-9]+)?)?)", name)	#replace all instances of {number} in the name with ([0-9]+.*[0-9]*), which matches floats and ints. Also allows 
-																				#for scientific notation, eg. 1e-6.
+	return re.sub("{[0-9]+}", "([+-]?[0-9]+(?:\.?[0-9]*(?:[eE][+-]?[0-9]+)?)?)", name)	#replace all instances of {number} in the name with a regex which matches floats and ints. Also allows for scientific notation, eg. 1e-6.
 																				
 #####################################################################################################
 
@@ -159,7 +183,9 @@ def getBatchParamsNameFile(file):
 
 def nameToParamsVals(jobname, nameFile="nameFile"):
 	"""
-	Given a job name, first recover a list of parameters from the nameFile. 
+	Given the jobname, returns a dictionary with parameters and their values. 
+
+	First recover a list of parameters from the nameFile. 
 	Next, by comparing it to regexName, recover the values of these parameters 
 	and assign these values to keys of the paramDict dictionary. 
 	"""
@@ -185,6 +211,7 @@ def editInputFile(paramDict):
 
 	DELTA = getDeltaFromNameFile("nameFile")
 
+	#THIS IS UGLY AND SHOULD BE CHANGED!
 	for paramName in paramDict:
 		if paramName == "Ec" or paramName == "Ec1" or paramName == "Ec2":
 			p = paramDict[paramName]
@@ -195,7 +222,8 @@ def editInputFile(paramDict):
 			for line in sampleF:
 				written=0	#whether the line was already written to the new file
 
-				for p in paramDict.values(): #iterate over all params - check if one of them matches the line, then overwrite it
+				#iterate over all params - check if one of them matches the line, then overwrite it
+				for p in paramDict.values(): 	#p.values() is a list, but we know that it only has a single element - the value of the parameter. 
 
 					if re.search("^"+p.name+"\s*=", line.strip()):
 						newF.write("	"+p.name+" = {0}\n".format(p.values))
@@ -414,7 +442,7 @@ def getJobsSlurm(regexName, WHICHSYSTEM):
 
 
 	#PARSE THE QUEUE
-	os.system('squeue -u {0} -o "%.100j %.12M" -h > statJobs.txt'.format(username))
+	os.system('squeue -u {0} -o "%.200j %.12M" -h > statJobs.txt'.format(username))
 	f = open("statJobs.txt", "r")
 	queue = [line.rstrip('\n').strip() for line in f]	#strip the newline characters and whitespace
 	f.close()
@@ -478,6 +506,42 @@ def cleanSlurm(job):
 	Cleans a failed job. Removes its directory from results/.
 	"""
 	os.system("rm -r results/{0}/".format(job))
+
+def run(job):
+	"""
+	Runs the job in the folder results/jobname.
+	This is basically a copy of the sendSlurm() function, just that it executes the script in place instead of sbatch
+	"""
+
+	#check if the folder exists and remove it if it does
+	if os.path.exists("results/{0}".format(job)):
+		#if it exists, the job has failed, remove it:
+		os.system("rm -rf results/{0}/".format(job))
+
+	#make an empty folder
+	os.mkdir("results/{0}".format(job))
+
+	#get parameters and their values
+	paramDict = nameToParamsVals(job, nameFile="nameFile")
+
+	#write an input file and move it into the job folder
+	editInputFile(paramDict)
+	os.system("mv {0} results/{1}/".format("inputFile", job))
+
+	#copy the SAMPLEscript to the job folder
+	os.system("cp SAMPLEscript results/{0}/script".format(job))
+	os.system("chmod +x results/{0}/script".format(job))	
+
+	#change the current directory to the job folder
+	os.chdir("results/{0}".format(job))
+	
+	#execute the script	
+	os.system("./script")
+
+	#change the current directory back
+	os.chdir("../..") 
+
+	return None
 
 def send(job, cluster_sub_host):
 	"""

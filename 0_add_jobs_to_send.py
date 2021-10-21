@@ -31,6 +31,10 @@ for param in paramDict.values():
 		smallestInputLen+=3
 		outputString += paramname+"_min " + paramname+"_max " + paramname+"_step "
 
+	elif sweeptype == "logsweep":
+		smallestInputLen+=3
+		outputString += paramname+"_min " + paramname+"_max " + paramname+"_numstep "
+
 	elif sweeptype == "relation":	#IF IT STARTS WITH =, THEN THIS PARAMETER HAS SOME EQUALITY/RELATION TO OTHER PARAMS	
 		smallestInputLen+=1
 		outputString += "relation "
