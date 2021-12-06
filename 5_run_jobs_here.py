@@ -8,19 +8,6 @@ import sys
 import re
 from helper import *
 
-#allow for an optional commmand line argument -c, which defines the cluster submission host for arcsub. The default value is arc01.vega.izum.si, the vega submission host.
-import argparse
-
-parser = argparse.ArgumentParser()
-parser.add_argument('-c', action="store", nargs=1, 
-						default="arc02.vega.izum.si", 
-						choices=["arc01.vega.izum.si", "arc02.vega.izum.si", "maister.hpc-rivr.um.si"], 
-						required=False,
-						dest="cluster_sub_host")
-
-args = parser.parse_args()
-cluster_sub_host = vars(args)["cluster_sub_host"]
-
 #REFRESH THE job status files again
 print("Updating job statuses..")
 os.system("1_update_jobs.py")
@@ -47,23 +34,19 @@ print("Cleaning failed...")
 for job in failedJobs:
 	clean(job)
 
-#RESEND FAILED JOBS
-print("Sending failed...")
+#COMBINE THE LISTS OF FAILED AND VANISHED AND SORT THEM
+sendingJobs = sorted(failedJobs + vanishedJobs)
+
+#RUN FAILED JOBS
+print("Running:")
 
 count=1
-for job in failedJobs:
+for job in sendingJobs:
 	print("{0} {1}".format(count, job))
-	send(job, cluster_sub_host)
-	count+=1
-
-#RESEND VANISHED jobs
-print("\nSending vanished...")
-for job in vanishedJobs:
-	print("{0} {1}".format(count, job))
-	send(job, cluster_sub_host)
+	run(job)
 	count+=1
 
 if count>0:
-	print("Attempted to send {0} jobs.".format(len(vanishedJobs)+len(failedJobs)))
+	print("Finished running {0} jobs.".format(len(sendingJobs)))
 else:
-	print("No jobs to send.")
+	print("No jobs to run.")
