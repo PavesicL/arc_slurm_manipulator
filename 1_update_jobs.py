@@ -45,7 +45,7 @@ for typ in countDict:
 
 other=0
 #this writes each jobname to corresponding file, eg. a job with status Running is appended to runningJobs.txt
-for jobname in jobStatuses:
+for jobname in sorted(jobStatuses):
 	appendLineToFile(jobname, jobStatuses[jobname].lower()+"Jobs.txt")
 	try:
 		countDict[jobStatuses[jobname]] += 1
