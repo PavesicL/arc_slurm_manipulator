@@ -62,7 +62,6 @@ for i in range(1, len(sys.argv)):
 		casesDict[whichParam].append(sys.argv[i])	
 
 
-
 #SET VALUES OF PARAMETERS FROM THE casesDict AND PRINT THEM OUT
 print("\nThe sweep is over parameters: ")
 for p in paramDict.values():

@@ -60,13 +60,13 @@ class parameter:
 			
 		elif self.sweeptype == "sweep":
 			start, stop, step = float(inVals[0]), float(inVals[1]), float(inVals[2])
-			self.values = [round(float(i), 6) for i in myarange(start, stop, step)]	
+			self.values = [round(float(i), 10) for i in myarange(start, stop, step)]	
 			
 		elif self.sweeptype == "logsweep":
 			#this is a list of [start, start * r, start * r^2, ..., start * r^N], where N = numstep - 1. This gives r = (stop / start) ^ (1/N).
 			start, stop, numstep = float(inVals[0]), float(inVals[1]), int(inVals[2])
 			r = (stop/start)**(1/(numstep-1))
-			self.values = [ round(start * r**i, 6) for i in range(numstep) ]
+			self.values = [ round(start * r**i, 10) for i in range(numstep) ]
 			
 		elif self.sweeptype == "relation":
 			self.values = inVals[0]
@@ -254,7 +254,7 @@ def writeBatchScript(batchDict, jobname):
 	Writes the batch script to submit the job with.
 	"""
 	WHICHSYSTEM = os.environ["WHICHSYSTEM"]
-	scriptname="script"	
+	scriptname = "script"	
 	specialParams = ["OMP_NUM_THREADS", "ml", "path", "singularityPath"]	#these parameters are not written in the SBATCH syntax, but have to be specified alternatively
 
 	#create the sendJob file
@@ -267,8 +267,6 @@ def writeBatchScript(batchDict, jobname):
 			if not param in specialParams:
 				#write the params in the SBATCH syntax
 				job.writelines('#SBATCH --{0}={1}\n'.format(param, val))	
-
-
 
 		if WHICHSYSTEM == "slurmmaister" or WHICHSYSTEM == "slurmNSC":
 			if not "singularityPath" in batchDict:
