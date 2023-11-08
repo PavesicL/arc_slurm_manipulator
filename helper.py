@@ -8,7 +8,7 @@ import os
 import re
 import sys
 import math
-import parser
+#import parser THIS IS DEPRECATED! SOLVE THE PROBLEM WITH relation PARAMS
 import itertools
 
 #####################################################################################################
@@ -330,6 +330,7 @@ def addRelationsToList(allCombinations, params):
 
 	return allCombinations	
 
+
 def evalRelation(relation, params, vals):
 	"""
 	Evaluates a relation, given from parameter names and their values. 
@@ -338,12 +339,15 @@ def evalRelation(relation, params, vals):
 	vals: a list of values of these parameters
 	"""
 
-	rel = parser.expr(relation).compile()
+	#rel = parser.expr(relation).compile()
 
-	res = eval(rel, {params[i].name : vals[i] for i in range(len(vals))})
-	res = round(res, 8)
+	#res = eval(rel, {params[i].name : vals[i] for i in range(len(vals))})
+	#res = round(res, 8)
 
-	return res
+	#return res
+	raise Exception("relation parameters are currently broken because the parser module is deprecated!")
+	return None
+
 
 def getJobnameList(genericName, params):
 
