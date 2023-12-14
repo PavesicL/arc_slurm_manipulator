@@ -6,15 +6,15 @@ Sends all jobs with status Failed or Vanished to the cluster.
 import os
 import sys
 import re
-from helper import *
+import helper
 
 #allow for an optional commmand line argument -c, which defines the cluster submission host for arcsub. The default value is arc01.vega.izum.si, the vega submission host.
 import argparse
 
 parser = argparse.ArgumentParser()
-parser.add_argument('-c', action="store", nargs=1, 
-						default="arc02.vega.izum.si", 
-						choices=["arc01.vega.izum.si", "arc02.vega.izum.si", "maister.hpc-rivr.um.si"], 
+parser.add_argument('-c', action="store", nargs=1,
+						default="arc02.vega.izum.si",
+						choices=["arc01.vega.izum.si", "arc02.vega.izum.si", "maister.hpc-rivr.um.si"],
 						required=False,
 						dest="cluster_sub_host")
 
@@ -45,7 +45,7 @@ else:
 #CLEAN FAILED JOBS
 print("Cleaning failed...")
 for job in failedJobs:
-	clean(job)
+	helper.clean(job)
 
 #RESEND FAILED JOBS
 print("Sending failed...")
@@ -53,14 +53,14 @@ print("Sending failed...")
 count=1
 for job in failedJobs:
 	print("{0} {1}".format(count, job))
-	send(job, cluster_sub_host)
+	helper.send(job, cluster_sub_host)
 	count+=1
 
 #RESEND VANISHED jobs
 print("\nSending vanished...")
 for job in vanishedJobs:
 	print("{0} {1}".format(count, job))
-	send(job, cluster_sub_host)
+	helper.send(job, cluster_sub_host)
 	count+=1
 
 if count>0:

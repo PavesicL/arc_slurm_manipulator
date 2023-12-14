@@ -28,20 +28,20 @@ print()
 killRunning, killQueueing = False, False
 if sys.argv[1] == "q" or sys.argv[1] == "a":
 	killQueueing = True
- 
+
 if sys.argv[1] == "r" or sys.argv[1] == "a":
 	killRunning = True
 
 countR, countQ = 0, 0
 count=0
-	
+
 if killRunning:
 	with open("runningJobs.txt", "r") as runF:
 		for name in runF:
 			count+=1
 			print("{0}	{1}".format(count, name))
 			os.system("{0} {1}".format(killCommand, name))
-	
+
 			countR+=1
 
 if killQueueing:
@@ -50,7 +50,7 @@ if killQueueing:
 			count+=1
 			print("{0}	{1}".format(count, name))
 			os.system("{0} {1}".format(killCommand, name))
-	
+
 			countQ+=1
 
 print("Attempted to kill {0} jobs; {1} running and {2} queuing.".format(countQ+countR, countR, countQ))

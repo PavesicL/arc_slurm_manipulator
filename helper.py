@@ -23,19 +23,19 @@ def myarange(start, stop, step):
 	for i in range(numsteps):
 		ll.append(round(start+i*step, 5))
 
-	ll.append(stop)	
+	ll.append(stop)
 
 	return ll
 
 #####################################################################################################
 """
 The parameter class is used for two things:
-	 when sending jobs, it is used to generate a parameter dictionary from a jobname. There we want to know the parameter name and its single value. 
-		This is then iterated over all 
+	 when sending jobs, it is used to generate a parameter dictionary from a jobname. There we want to know the parameter name and its single value.
+		This is then iterated over all
 """
 
 class parameter:
- 
+
 	def __init__(self, name, sweeptype):
 		self.name = name
 		self.sweeptype = sweeptype
@@ -46,7 +46,7 @@ class parameter:
 		"""
 		Set the variable values to be a single float. Used in send_jobs.
 		"""
-		self.values = value	
+		self.values = value
 
 	def set_values(self, inVals):
 		"""
@@ -57,20 +57,20 @@ class parameter:
 
 		if self.sweeptype == "case":
 			self.values = [float(i) for i in inVals]
-			
+
 		elif self.sweeptype == "sweep":
 			start, stop, step = float(inVals[0]), float(inVals[1]), float(inVals[2])
-			self.values = [round(float(i), 10) for i in myarange(start, stop, step)]	
-			
+			self.values = [round(float(i), 10) for i in myarange(start, stop, step)]
+
 		elif self.sweeptype == "logsweep":
 			#this is a list of [start, start * r, start * r^2, ..., start * r^N], where N = numstep - 1. This gives r = (stop / start) ^ (1/N).
 			start, stop, numstep = float(inVals[0]), float(inVals[1]), int(inVals[2])
 			r = (stop/start)**(1/(numstep-1))
 			self.values = [ round(start * r**i, 10) for i in range(numstep) ]
-			
+
 		elif self.sweeptype == "relation":
 			self.values = inVals[0]
-			
+
 		return None
 
 	def checkInVals(self, inVals):
@@ -93,7 +93,7 @@ class parameter:
 			print("The parameter {0} is type relation but did not get 1 value, but {1}!".format(self.name, len(inVals)))
 			exit()
 
-		return None	
+		return None
 
 
 
@@ -105,14 +105,14 @@ def nameToRegex(name):
 	Replace all instances of {number} in the name with ([0-9]+.*[0-9]*), which matches floats and ints
 	"""
 	#OLD return re.sub("{[0-9]+}", "(-*[0-9]+\.*[0-9]*)", name)	#replace all instances of {number} in the name with ([0-9]+.*[0-9]*), which matches floats and ints
-	
+
 	return re.sub("{[0-9]+}", "([+-]?[0-9]+(?:\.?[0-9]*(?:[eE][+-]?[0-9]+)?)?)", name)	#replace all instances of {number} in the name with a regex which matches floats and ints. Also allows for scientific notation, eg. 1e-6.
-																				
+
 #####################################################################################################
 
 def getParamsNameFile(file):
 	"""
-	Reads the nameFile, and returns a generic jobname and a dictionary of parameters, 
+	Reads the nameFile, and returns a generic jobname and a dictionary of parameters,
 	where key is the parameter name and value is its sweeptype (sweep, case or relation).
 	"""
 
@@ -126,12 +126,12 @@ def getParamsNameFile(file):
 				continue
 
 			a = re.search("name\s*=\s*(.*)", line)
-		
-			b = re.search("params\s*{", line) 
-			c = re.search("}\s*endparams", line) 
-			
+
+			b = re.search("params\s*{", line)
+			c = re.search("}\s*endparams", line)
+
 			d = re.search("(\w*)\s*(\w*)", line)
-			
+
 			if line[0] == "#":	#this line is a comment
 				pass
 			if a:	#this line has the name, save it
@@ -183,15 +183,15 @@ def getBatchParamsNameFile(file):
 
 def nameToParamsVals(jobname, nameFile="nameFile"):
 	"""
-	Given the jobname, returns a dictionary with parameters and their values. 
+	Given the jobname, returns a dictionary with parameters and their values.
 
-	First recover a list of parameters from the nameFile. 
-	Next, by comparing it to regexName, recover the values of these parameters 
-	and assign these values to keys of the paramDict dictionary. 
+	First recover a list of parameters from the nameFile.
+	Next, by comparing it to regexName, recover the values of these parameters
+	and assign these values to keys of the paramDict dictionary.
 	"""
 
 	name, paramsDict = getParamsNameFile(nameFile)
-	regexName = nameToRegex(name)		
+	regexName = nameToRegex(name)
 
 	i=0
 	a = re.search(regexName, jobname)	#match the regexname with the jobname
@@ -223,7 +223,7 @@ def editInputFile(paramDict):
 				written=0	#whether the line was already written to the new file
 
 				#iterate over all params - check if one of them matches the line, then overwrite it
-				for p in paramDict.values(): 	#p.values() is a list, but we know that it only has a single element - the value of the parameter. 
+				for p in paramDict.values(): 	#p.values() is a list, but we know that it only has a single element - the value of the parameter.
 
 					if re.search("^"+p.name+"\s*=", line.strip()):
 						newF.write("	"+p.name+" = {0}\n".format(p.values))
@@ -231,8 +231,8 @@ def editInputFile(paramDict):
 
 				if not written:
 					newF.write(line)
-	return None				
- 
+	return None
+
 def editSendJobxrsl(jobname):
 	"""
 	Creates a new sendJob.xrsl file, where only the jobname is updated.
@@ -254,7 +254,7 @@ def writeBatchScript(batchDict, jobname):
 	Writes the batch script to submit the job with.
 	"""
 	WHICHSYSTEM = os.environ["WHICHSYSTEM"]
-	scriptname = "script"	
+	scriptname = "script"
 	specialParams = ["OMP_NUM_THREADS", "ml", "path", "singularityPath"]	#these parameters are not written in the SBATCH syntax, but have to be specified alternatively
 
 	#create the sendJob file
@@ -266,42 +266,42 @@ def writeBatchScript(batchDict, jobname):
 			val = batchDict[param]
 			if not param in specialParams:
 				#write the params in the SBATCH syntax
-				job.writelines('#SBATCH --{0}={1}\n'.format(param, val))	
+				job.writelines('#SBATCH --{0}={1}\n'.format(param, val))
 
 		if WHICHSYSTEM == "slurmmaister" or WHICHSYSTEM == "slurmNSC":
 			if not "singularityPath" in batchDict:
 				print("Singularity path not given! Enter singularityPath into nameFile; it is probably:")
 				print("/ceph/grid/home/lukap/containers/foss2020_etc.sif")
 				exit()
-			
+
 			if "path" in batchDict and "OMP_NUM_THREADS" in batchDict:
 				job.writelines("SINGULARITYENV_OMP_NUM_THREADS={0} SINGULARITYENV_PREPEND_PATH={1} singularity exec {2} ./{3}\n"
-																												.format(batchDict["OMP_NUM_THREADS"], batchDict["path"], batchDict["singularityPath"], scriptname))	
+																												.format(batchDict["OMP_NUM_THREADS"], batchDict["path"], batchDict["singularityPath"], scriptname))
 			elif "path" in batchDict:
-				job.writelines("SINGULARITYENV_PREPEND_PATH={0} singularity exec {1} ./{2}\n".format(batchDict["path"], batchDict["singularityPath"], scriptname))	
+				job.writelines("SINGULARITYENV_PREPEND_PATH={0} singularity exec {1} ./{2}\n".format(batchDict["path"], batchDict["singularityPath"], scriptname))
 			elif "OMP_NUM_THREADS" in batchDict:
-				job.writelines("SINGULARITYENV_OMP_NUM_THREADS={0} singularity exec {1} ./{2}\n".format(batchDict["OMP_NUM_THREADS"], batchDict["singularityPath"], scriptname))				
-							
+				job.writelines("SINGULARITYENV_OMP_NUM_THREADS={0} singularity exec {1} ./{2}\n".format(batchDict["OMP_NUM_THREADS"], batchDict["singularityPath"], scriptname))
+
 			else:
-				job.writelines("singularity exec /ceph/sys/singularity/gimkl-2018b.simg {0}\n".format(scriptname))	
+				job.writelines("singularity exec /ceph/sys/singularity/gimkl-2018b.simg {0}\n".format(scriptname))
 
 
 		elif WHICHSYSTEM == "slurmspinon" or WHICHSYSTEM == "slurmvega":
 			if "path" in batchDict:
 				job.writelines("export PATH={0}:$PATH\n".format(batchDict["path"]))
 			if "OMP_NUM_THREADS" in batchDict:
-				job.writelines("export OMP_NUM_THREADS={0}\n".format(batchDict["OMP_NUM_THREADS"]))	
+				job.writelines("export OMP_NUM_THREADS={0}\n".format(batchDict["OMP_NUM_THREADS"]))
 			if "ml" in batchDict:
 				job.writelines("ml "+ batchDict["ml"] + "\n")
-		
+
 			job.writelines("./{}\n".format(scriptname))
 
-	
+
 		else:
 			print("Environment variable WHICHSYSTEM is not correct! It has to be one of slurmmaister, slurmmaisterspinon, slurmNSC!")
 			print("Currently, it is: {}".format(WHICHSYSTEM))
-			exit()		
-		
+			exit()
+
 
 	return None
 
@@ -328,34 +328,27 @@ def addRelationsToList(allCombinations, params):
 
 		allCombinations[i] = list(allCombinations[i]) + evaluatedRelations
 
-	return allCombinations	
+	return allCombinations
 
 
 def evalRelation(relation, params, vals):
 	"""
-	Evaluates a relation, given from parameter names and their values. 
+	Evaluates a relation, given from parameter names and their values.
 	relation: a relation to evaluate and return
 	params: a list of parameters
 	vals: a list of values of these parameters
 	"""
-
-	#rel = parser.expr(relation).compile()
-
-	#res = eval(rel, {params[i].name : vals[i] for i in range(len(vals))})
-	#res = round(res, 8)
-
-	#return res
-	raise Exception("relation parameters are currently broken because the parser module is deprecated!")
-	return None
-
+	res = eval(relation, {params[i].name : vals[i] for i in range(len(vals))})
+	res = round(res, 8)
+	return res
 
 def getJobnameList(genericName, params):
 
-	noRelParams=[]	#create a list of params without the ones with relation	
+	noRelParams=[]	#create a list of params without the ones with relation
 	for p in params:
 		if p.sweeptype != "relation":
 			noRelParams.append(p.values)
-	
+
 	allCombinations = list(itertools.product(*noRelParams))
 	if len(allCombinations) < 20:
 		print(allCombinations)
@@ -380,19 +373,19 @@ def get_StatJobs(regexName):
 	elif re.match("slurm.*", WHICHSYSTEM):
 		jobStatuses = getJobsSlurm(regexName, WHICHSYSTEM)
 
-	else: 
+	else:
 		print("The environment variable WHICHSYSTEM is not set correctly! Has to be one of: arc, slurmspinon, slurmmaister, slurmNSC.")
-		exit()	
+		exit()
 
 	return jobStatuses
 
 def getJobsArc(regexName):
 	"""
-	Refreshes statJobs.txt and reads the arcstat output. 
+	Refreshes statJobs.txt and reads the arcstat output.
 	Returns a dictionary of all jobs and their statuses.
 	"""
 
-	#REFRESH THE statJobs.txt FILE	
+	#REFRESH THE statJobs.txt FILE
 	os.system("arcstat -a  > statJobs.txt")
 
 	#GET A JOB LIST FROM THE CLUSTER WITH CURRENT JOB STATUS
@@ -403,7 +396,7 @@ def getJobsArc(regexName):
 		here=0
 		for line in jobsF:
 
-			if here==0:		
+			if here==0:
 				a = re.search("("+regexName+")", line)
 				if a:
 					here=1
@@ -418,20 +411,20 @@ def getJobsArc(regexName):
 
 	#PARSE THE SAVED JOBS TOO
 	for folder in os.listdir(("results/")):
-		jobStatuses[folder] = "Saved"				
+		jobStatuses[folder] = "Saved"
 
 	return jobStatuses
 
 def getJobsSlurm(regexName, WHICHSYSTEM):
 	"""
-	Refreshes statJobs.txt and reads the squeue -u username output. 
+	Refreshes statJobs.txt and reads the squeue -u username output.
 	Returns a dictionary of all jobs and their statuses. Statuses mimic the ARC nomenclature.
 	Jobs are finished when there is a DONE file in their folder! Each slurm script has to include && touch DONE at the end!
 	"""
 
 	if WHICHSYSTEM == "slurmspinon":
 		username = "pavesic"
-	
+
 	elif WHICHSYSTEM == "slurmmaister":
 		username = "lukap"
 
@@ -448,13 +441,13 @@ def getJobsSlurm(regexName, WHICHSYSTEM):
 	f = open("statJobs.txt", "r")
 	queue = [line.rstrip('\n').strip() for line in f]	#strip the newline characters and whitespace
 	f.close()
-	
+
 	jobStatuses={}
 
 	#GET JOBS IN QUEUE
 	for entry in queue:
 		a = re.search("("+ regexName +")" + "\s*(\d?-?\d{,2}:\d{,2}:?\d*)", entry)	#This regex matches the time output in squeue
-		if a:		
+		if a:
 			time = a.group(a.lastindex)
 			name = a.group(1)
 
@@ -486,7 +479,7 @@ def clean(job):
 	"""
 	Cleans a job with a given job name.
 	"""
-	
+
 	WHICHSYSTEM = os.environ["WHICHSYSTEM"]
 
 	if WHICHSYSTEM == "arc":
@@ -532,20 +525,20 @@ def run(job):
 
 	#copy the SAMPLEscript to the job folder
 	os.system("cp SAMPLEscript results/{0}/script".format(job))
-	os.system("chmod +x results/{0}/script".format(job))	
+	os.system("chmod +x results/{0}/script".format(job))
 
 	#change the current directory to the job folder
 	os.chdir("results/{0}".format(job))
-	
-	#execute the script	
+
+	#execute the script
 	os.system("./script")
 
 	#change the current directory back
-	os.chdir("../..") 
+	os.chdir("../..")
 
 	return None
 
-def send(job, cluster_sub_host):
+def send(job, cluster_sub_host, scriptname="SAMPLEscript"):
 	"""
 	Sends a job with a given jobname.
 	"""
@@ -556,7 +549,7 @@ def send(job, cluster_sub_host):
 		jobStatuses = sendArc(job, cluster_sub_host)
 
 	elif re.match("slurm.*", WHICHSYSTEM):
-		jobStatuses = sendSlurm(job)
+		jobStatuses = sendSlurm(job, scriptname)
 
 	return None
 
@@ -580,9 +573,10 @@ def sendArc(job, cluster_sub_host):
 
 	return None
 
-def sendSlurm(job):
+def sendSlurm(job, scriptname="SAMPLEscript"):
 	"""
 	Sends a job to slurm with sbatch.
+	scriptname is the name of the script.
 	"""
 
 	#check if the folder exists and remove it if it does
@@ -600,19 +594,19 @@ def sendSlurm(job):
 	editInputFile(paramDict)
 	os.system("mv {0} results/{1}/".format("inputFile", job))
 
-	#copy the SAMPLEscript to the job folder
-	os.system("cp SAMPLEscript results/{0}/script".format(job))
-	os.system("chmod +x results/{0}/script".format(job))			
+	#copy the script to the job folder
+	os.system(f"cp {scriptname} results/{job}/script")
+	os.system(f"chmod +x results/{job}/script")
 
 	batchDict = getBatchParamsNameFile("nameFile")
 	#write the batch script
 	writeBatchScript(batchDict, job)
-	
+
 	#change the current directory to the job folder
 	os.chdir("results/{0}".format(job))
-	#sbatch to send job	
+	#sbatch to send job
 	os.system("sbatch sendJob".format(job))
 	#change the current directory back
-	os.chdir("../..") 
+	os.chdir("../..")
 
 	return None

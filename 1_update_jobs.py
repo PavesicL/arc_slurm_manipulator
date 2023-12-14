@@ -6,20 +6,19 @@ Reads the output of either arcstat or squeue and parses the job statuses. Saves 
 import os
 import sys
 import re
-from helper import *
+import helper
 
 #get a regex general form of the name
-name, _ = getParamsNameFile("nameFile")
+name, _ = helper.getParamsNameFile("nameFile")
 #regexName = re.sub("{[0-9]+}", "(-*[0-9]+\.*[0-9]*)", name)	#replace all instances of {number} in the name with ([0-9]+.*[0-9]*), which matches floats and ints
 regexName = re.sub("{[0-9]+}", "([+-]?[0-9]+(?:\.?[0-9]*(?:[eE][+-]?[0-9]+)?)?)", name)
 #READ THE FILE WITH ALL REQUESTED JOBS TO A LIST
 f = open("jobsToSend.txt", "r")
 jobsToSend = [line.rstrip('\n') for line in f]	#strip the newline characters
 
-
 #SAVE THE INFORMATION ABOUT THE JOBS FROM THE QUEUE TO statJobs.txt
 print("Getting job info..")
-jobStatuses = get_StatJobs(regexName)	#refreshes the file statJobs.txt, depends whether the system variable WHICHSYSTEM is slurm or arc
+jobStatuses = helper.get_StatJobs(regexName)	#refreshes the file statJobs.txt, depends whether the system variable WHICHSYSTEM is slurm or arc
 
 #GET VANISHED JOBS AS A COMPARISON BETWEEN jobsToSend.txt and jobs in jobStatuses
 for job in jobsToSend:
@@ -39,7 +38,7 @@ countDict = {"Queuing":0, "Running":0, "Finished":0, "Failed":0, "Vanished":0, "
 #clean the files if they exist
 for typ in countDict:
 	fileName = typ.lower() + "Jobs.txt"
-	
+
 	if os.path.exists(fileName):
 		os.remove(fileName)
 
