@@ -18,6 +18,6 @@ print(f"Found {len(failedJobs)} failed jobs.")
 for job in failedJobs:
     print()
     print(job)
-    helper.send(job, scriptname="SAMPLErestart_script")
+    helper.continue_job(job=job, scriptname="SAMPLEcontinueScript")
 
 print(f"Restarted {len(failedJobs)} jobs.")

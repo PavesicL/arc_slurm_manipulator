@@ -249,16 +249,15 @@ def editSendJobxrsl(jobname):
 
 	return None
 
-def writeBatchScript(batchDict, jobname):
+def writeBatchScript(batchDict, jobname, batchscriptname="sendJob", scriptname="script"):
 	"""
 	Writes the batch script to submit the job with.
 	"""
 	WHICHSYSTEM = os.environ["WHICHSYSTEM"]
-	scriptname = "script"
 	specialParams = ["OMP_NUM_THREADS", "ml", "path", "singularityPath"]	#these parameters are not written in the SBATCH syntax, but have to be specified alternatively
 
 	#create the sendJob file
-	with open("results/{0}/sendJob".format(jobname), "w") as job:
+	with open(f"results/{jobname}/{batchscriptname}", "w") as job:
 		job.writelines('#!/bin/bash\n')
 		job.writelines('#SBATCH --job-name={0}\n'.format(jobname))
 
@@ -608,5 +607,33 @@ def sendSlurm(job, scriptname="SAMPLEscript"):
 	os.system("sbatch sendJob".format(job))
 	#change the current directory back
 	os.chdir("../..")
+
+	return None
+
+def continue_job(job, scriptname):
+	"""
+	Continues the job - does not replace the folder, and runs
+	the script determined by scriptname.
+	"""
+
+	#check if the folder exists and complain if it does not
+	if not os.path.exists(f"results/{job}"):
+		print(f"The folder results/{job} does not exist. Ignoring.")
+
+	else:
+		os.system(f"cp {scriptname} results/{job}/continueScript")
+
+		os.system(f"chmod +x results/{job}/continueScript")
+
+		batchDict = getBatchParamsNameFile("nameFile")
+		#write the batch script
+		writeBatchScript(batchDict, job, batchscriptname="continueJob", scriptname="continueScript")
+
+		#change the current directory to the job folder
+		os.chdir(f"results/{job}")
+		#sbatch to send job
+		os.system("sbatch continueJob")
+		#change the current directory back
+		os.chdir("../..")
 
 	return None
