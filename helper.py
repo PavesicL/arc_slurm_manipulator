@@ -8,6 +8,7 @@ import os
 import re
 import sys
 import math
+import numpy
 #import parser THIS IS DEPRECATED! SOLVE THE PROBLEM WITH relation PARAMS
 import itertools
 
@@ -337,7 +338,11 @@ def evalRelation(relation, params, vals):
 	params: a list of parameters
 	vals: a list of values of these parameters
 	"""
-	res = eval(relation, {params[i].name : vals[i] for i in range(len(vals))})
+
+	# eval takes: expression, globals, locals
+	# globals define the namespace in which eval() operates
+	# locals hold the values of the rest of parameters
+	res = eval(relation, {"math":math, "np":numpy}, {params[i].name : vals[i] for i in range(len(vals))})
 	res = round(res, 8)
 	return res
 
