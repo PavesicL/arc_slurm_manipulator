@@ -29,6 +29,16 @@ def myarange(start, stop, step):
 	return ll
 
 #####################################################################################################
+
+# a dict of types supported for parameters. Transforms from string to type object.
+supported_types = {
+	"int" 	: int,
+	"float" : float,
+	"str"	: str,
+}
+
+
+#####################################################################################################
 """
 The parameter class is used for two things:
 	 when sending jobs, it is used to generate a parameter dictionary from a jobname. There we want to know the parameter name and its single value.
@@ -37,9 +47,17 @@ The parameter class is used for two things:
 
 class parameter:
 
-	def __init__(self, name, sweeptype):
+	def __init__(self, name, sweeptype, ptype):
 		self.name = name
 		self.sweeptype = sweeptype
+
+		if ptype == None:
+			self.ptype = float
+		else:
+			try:
+				self.ptype = supported_types[ptype]
+			except KeyError:
+				raise Exception(f"Type not supported. Available types: {supported_types.keys()}")
 
 		self.values = None 	#defined in set_values()
 
@@ -57,11 +75,14 @@ class parameter:
 		self.checkInVals(inVals)	#check if everything is ok
 
 		if self.sweeptype == "case":
-			self.values = [float(i) for i in inVals]
+			self.values = [self.ptype(i) for i in inVals]
+
+		if self.sweeptype == "case_string":
+			self.values = [i for i in inVals]
 
 		elif self.sweeptype == "sweep":
-			start, stop, step = float(inVals[0]), float(inVals[1]), float(inVals[2])
-			self.values = [round(float(i), 10) for i in myarange(start, stop, step)]
+			start, stop, step = self.ptype(inVals[0]), self.ptype(inVals[1]), self.ptype(inVals[2])
+			self.values = [round(self.ptype(i), 10) for i in myarange(start, stop, step)]
 
 		elif self.sweeptype == "logsweep":
 			#this is a list of [start, start * r, start * r^2, ..., start * r^N], where N = numstep - 1. This gives r = (stop / start) ^ (1/N).
@@ -105,9 +126,10 @@ def nameToRegex(name):
 	"""
 	Replace all instances of {number} in the name with ([0-9]+.*[0-9]*), which matches floats and ints
 	"""
-	#OLD return re.sub("{[0-9]+}", "(-*[0-9]+\.*[0-9]*)", name)	#replace all instances of {number} in the name with ([0-9]+.*[0-9]*), which matches floats and ints
 
-	return re.sub("{[0-9]+}", "([+-]?[0-9]+(?:\.?[0-9]*(?:[eE][+-]?[0-9]+)?)?)", name)	#replace all instances of {number} in the name with a regex which matches floats and ints. Also allows for scientific notation, eg. 1e-6.
+	# this glorious pattern matches either a string (the [A-Za-z]+ part),
+	# or a number. It can be integer, with a decimal point, or in the scientific notation (eg. 1e-05)
+	return re.sub("{[0-9]+}", "([A-Za-z]+|[+-]?[0-9]+(?:\.?[0-9]*(?:[eE][+-]?[0-9]+)?)?)", name)	#replace all instances of {number} in the name with a regex which matches floats and ints. Also allows for scientific notation, eg. 1e-6.
 
 #####################################################################################################
 
@@ -131,7 +153,8 @@ def getParamsNameFile(file):
 			b = re.search("params\s*{", line)
 			c = re.search("}\s*endparams", line)
 
-			d = re.search("(\w*)\s*(\w*)", line)
+			# this matches either two words (param, sweeptype) or three (param, sweeptype, type)
+			d = re.search("(\w+)\s*(\w+)(?:\s*(\w+))?", line)
 
 			if line[0] == "#":	#this line is a comment
 				pass
@@ -144,8 +167,8 @@ def getParamsNameFile(file):
 				paramsCheck=False
 
 			if paramsCheck and d:	#parse parameters
-				param, sweeptype = d.group(1), d.group(2)
-				paramsDict[param] = parameter(param, sweeptype)
+				param, sweeptype, enforced_type = d.group(1), d.group(2), d.group(3)
+				paramsDict[param] = parameter(param, sweeptype, enforced_type)
 
 		return name, paramsDict
 
@@ -198,7 +221,11 @@ def nameToParamsVals(jobname, nameFile="nameFile"):
 	a = re.search(regexName, jobname)	#match the regexname with the jobname
 	for p in paramsDict.values():
 		i+=1
-		value = float(a.group(i))
+
+		if p.ptype == str:
+			value = '"' + p.ptype(a.group(i)) + '"'
+		else:
+			value = p.ptype(a.group(i))
 
 		p.set_single_value(value)
 
