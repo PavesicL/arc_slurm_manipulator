@@ -282,7 +282,7 @@ def writeBatchScript(batchDict, jobname, batchscriptname="sendJob", scriptname="
 	Writes the batch script to submit the job with.
 	"""
 	WHICHSYSTEM = os.environ["WHICHSYSTEM"]
-	specialParams = ["OMP_NUM_THREADS", "ml", "path", "singularityPath"]	#these parameters are not written in the SBATCH syntax, but have to be specified alternatively
+	specialParams = ["MKL_NUM_THREADS", "OMP_NUM_THREADS", "ml", "path", "singularityPath"]	#these parameters are not written in the SBATCH syntax, but have to be specified alternatively
 
 	#create the sendJob file
 	with open(f"results/{jobname}/{batchscriptname}", "w") as job:
@@ -313,11 +313,13 @@ def writeBatchScript(batchDict, jobname, batchscriptname="sendJob", scriptname="
 				job.writelines("singularity exec /ceph/sys/singularity/gimkl-2018b.simg {0}\n".format(scriptname))
 
 
-		elif WHICHSYSTEM == "slurmspinon" or WHICHSYSTEM == "slurmvega":
+		elif WHICHSYSTEM == "slurmspinon" or WHICHSYSTEM == "slurmvega" or WHICHSYSTEM == "slurmleonardo":
 			if "path" in batchDict:
 				job.writelines("export PATH={0}:$PATH\n".format(batchDict["path"]))
 			if "OMP_NUM_THREADS" in batchDict:
 				job.writelines("export OMP_NUM_THREADS={0}\n".format(batchDict["OMP_NUM_THREADS"]))
+			if "MKL_NUM_THREADS" in batchDict:
+                                job.writelines("export MKL_NUM_THREADS={0}\n".format(batchDict["MKL_NUM_THREADS"]))
 			if "ml" in batchDict:
 				job.writelines("ml "+ batchDict["ml"] + "\n")
 
@@ -464,7 +466,9 @@ def getJobsSlurm(regexName, WHICHSYSTEM):
 
 	elif WHICHSYSTEM == "slurmvega":
 		username = "lukap"
-
+	
+	elif WHICHSYSTEM == "slurmleonardo":
+		username = "lpavesic"
 
 
 	#PARSE THE QUEUE
