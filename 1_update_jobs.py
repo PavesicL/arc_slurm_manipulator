@@ -10,8 +10,7 @@ import helper
 
 #get a regex general form of the name
 name, _ = helper.getParamsNameFile("nameFile")
-#regexName = re.sub("{[0-9]+}", "(-*[0-9]+\.*[0-9]*)", name)	#replace all instances of {number} in the name with ([0-9]+.*[0-9]*), which matches floats and ints
-regexName = re.sub("{[0-9]+}", "([+-]?[0-9]+(?:\.?[0-9]*(?:[eE][+-]?[0-9]+)?)?)", name)
+regexName = helper.nameToRegex(name)
 #READ THE FILE WITH ALL REQUESTED JOBS TO A LIST
 f = open("jobsToSend.txt", "r")
 jobsToSend = [line.rstrip('\n') for line in f]	#strip the newline characters

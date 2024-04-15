@@ -5,11 +5,11 @@ Given a general job name and a list of parameters from nameFile, takes parameter
 
 import sys
 import re
-from helper import *
+import helper
 
 # THIS IS ALL PARSING THE INPUT AND PRINTING/CHECKING IF EVERYTHING IS OK ###########################################################################
 
-jobname, paramDict = getParamsNameFile("nameFile")
+jobname, paramDict = helper.getParamsNameFile("nameFile")
 
 print(jobname)
 print([(i.name, i.sweeptype) for i in paramDict.values()])
@@ -19,10 +19,10 @@ smallestInputLen = 1 #start at 1 as len(sys.argv) is always at least 1 (sys.argv
 outputString = " "
 for param in paramDict.values():
 	paramname = param.name
-	sweeptype = param.sweeptype		
-	
+	sweeptype = param.sweeptype
+
 	outputString += paramname+" "
-		
+
 	if sweeptype == "case":
 		smallestInputLen+=1
 		outputString += paramname+"s "
@@ -35,7 +35,7 @@ for param in paramDict.values():
 		smallestInputLen+=3
 		outputString += paramname+"_min " + paramname+"_max " + paramname+"_numstep "
 
-	elif sweeptype == "relation":	#IF IT STARTS WITH =, THEN THIS PARAMETER HAS SOME EQUALITY/RELATION TO OTHER PARAMS	
+	elif sweeptype == "relation":	#IF IT STARTS WITH =, THEN THIS PARAMETER HAS SOME EQUALITY/RELATION TO OTHER PARAMS
 		smallestInputLen+=1
 		outputString += "relation "
 
@@ -47,19 +47,20 @@ if len(sys.argv) < smallestInputLen:
 
 #PARSE INPUT
 #Iterate over the input, if the input matches the name of a parameter, append all the following numbers into a key od a dictionary.
+
+
 casesDict = {}
 for i in range(1, len(sys.argv)):
-	skip=False	
+	skip=False
 
 	for param in paramDict:
-
 		if sys.argv[i] == param:
 			whichParam = param
 			casesDict[whichParam]=[]
 			skip = True	#when we find a parameter name, skip this instance of i
-	
+
 	if not skip:	#if we have not found a parameter name at this i, append the number to the corresponding list in casesList
-		casesDict[whichParam].append(sys.argv[i])	
+		casesDict[whichParam].append(sys.argv[i])
 
 
 #SET VALUES OF PARAMETERS FROM THE casesDict AND PRINT THEM OUT
@@ -71,7 +72,7 @@ for p in paramDict.values():
 
 # GENERATE ALL JOB NAMES AND SAVE THEM TO A FILE ####################################################################################################
 
-jobNameList = getJobnameList(jobname, [p for p in paramDict.values()])
+jobNameList = helper.getJobnameList(jobname, [p for p in paramDict.values()])
 
 add = input("Add {} jobs to jobsToSend.txt? [y/n]\n".format(len(jobNameList)))
 
@@ -79,7 +80,7 @@ if add=="y":
 	count=0
 	with open("jobsToSend.txt", "a+") as newF:
 
-		for job in jobNameList:		
+		for job in jobNameList:
 			newF.write(job+"\n")
 			count+=1
 
