@@ -129,7 +129,7 @@ def nameToRegex(name):
 
 	# this glorious pattern matches either a string (the [A-Za-z]+ part),
 	# or a number. It can be integer, with a decimal point, or in the scientific notation (eg. 1e-05)
-	return re.sub("{[0-9]+}", "([A-Za-z]+|[+-]?[0-9]+(?:\.?[0-9]*(?:[eE][+-]?[0-9]+)?)?)", name)	#replace all instances of {number} in the name with a regex which matches floats and ints. Also allows for scientific notation, eg. 1e-6.
+	return re.sub("{[0-9]+}", "([A-Za-z]+|[+-]?[0-9]+(?:\.?[0-9]*(?:[eE][+-]?[0-9]+)?)?)", name)
 
 #####################################################################################################
 
@@ -466,7 +466,7 @@ def getJobsSlurm(regexName, WHICHSYSTEM):
 
 	elif WHICHSYSTEM == "slurmvega":
 		username = "lukap"
-	
+
 	elif WHICHSYSTEM == "slurmleonardo":
 		username = "lpavesic"
 
@@ -481,7 +481,8 @@ def getJobsSlurm(regexName, WHICHSYSTEM):
 
 	#GET JOBS IN QUEUE
 	for entry in queue:
-		a = re.search("("+ regexName +")" + "\s*(\d?-?\d{,2}:\d{,2}:?\d*)", entry)	#This regex matches the time output in squeue
+		#a = re.search("("+ regexName +")" + "\s*(\d?-?\d{,2}:\d{,2}:?\d*)", entry)	#This regex matches the time output in squeue
+		a = re.match("("+ regexName +")" + "\s*(\d?-?\d{,2}:\d{,2}:?\d*)", entry)	#This regex matches the time output in squeue
 		if a:
 			time = a.group(a.lastindex)
 			name = a.group(1)
