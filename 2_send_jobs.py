@@ -17,22 +17,29 @@ parser.add_argument('-c', action="store", nargs=1,
 						choices=["arc01.vega.izum.si", "arc02.vega.izum.si", "maister.hpc-rivr.um.si"],
 						required=False,
 						dest="cluster_sub_host")
+parser.add_argument('--vanished_only', action="store",
+						default=False,
+						type=bool,
+						required=False,
+						dest="vanished_only")
+
 
 args = parser.parse_args()
-cluster_sub_host = vars(args)["cluster_sub_host"]
+cluster_sub_host = args.cluster_sub_host
+vanished_only = args.vanished_only
 
 #REFRESH THE job status files again
 print("Updating job statuses..")
 os.system("1_update_jobs.py")
 
 #READ FAILED AND VANISHED JOBS TO LISTS
-if os.path.exists("failedJobs.txt"):
+if os.path.exists("failedJobs.txt") and not vanished_only:
 	f = open("failedJobs.txt", "r")
 	failedJobs = [line.rstrip('\n') for line in f]	#strip the newline characters
 else:
 	failedJobs=[]
 
-if os.path.exists("deletedJobs.txt"):
+if os.path.exists("deletedJobs.txt") and not vanished_only:
 	f = open("deletedJobs.txt", "r")
 	failedJobs += [line.rstrip('\n') for line in f]	#strip the newline characters
 

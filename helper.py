@@ -481,7 +481,6 @@ def getJobsSlurm(regexName, WHICHSYSTEM):
 
 	#GET JOBS IN QUEUE
 	for entry in queue:
-		#a = re.search("("+ regexName +")" + "\s*(\d?-?\d{,2}:\d{,2}:?\d*)", entry)	#This regex matches the time output in squeue
 		a = re.match("("+ regexName +")" + "\s*(\d?-?\d{,2}:\d{,2}:?\d*)", entry)	#This regex matches the time output in squeue
 		if a:
 			time = a.group(a.lastindex)
