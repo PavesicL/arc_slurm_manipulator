@@ -313,13 +313,13 @@ def writeBatchScript(batchDict, jobname, batchscriptname="sendJob", scriptname="
 				job.writelines("singularity exec /ceph/sys/singularity/gimkl-2018b.simg {0}\n".format(scriptname))
 
 
-		elif WHICHSYSTEM == "slurmspinon" or WHICHSYSTEM == "slurmvega" or WHICHSYSTEM == "slurmleonardo":
+		elif WHICHSYSTEM in [ "slurmspinon", "slurmvega", "slurmleonardo", "slurmpadova" ]:
 			if "path" in batchDict:
 				job.writelines("export PATH={0}:$PATH\n".format(batchDict["path"]))
 			if "OMP_NUM_THREADS" in batchDict:
 				job.writelines("export OMP_NUM_THREADS={0}\n".format(batchDict["OMP_NUM_THREADS"]))
 			if "MKL_NUM_THREADS" in batchDict:
-                                job.writelines("export MKL_NUM_THREADS={0}\n".format(batchDict["MKL_NUM_THREADS"]))
+				job.writelines("export MKL_NUM_THREADS={0}\n".format(batchDict["MKL_NUM_THREADS"]))
 			if "ml" in batchDict:
 				job.writelines("ml "+ batchDict["ml"] + "\n")
 
@@ -470,6 +470,8 @@ def getJobsSlurm(regexName, WHICHSYSTEM):
 	elif WHICHSYSTEM == "slurmleonardo":
 		username = "lpavesic"
 
+	elif WHICHSYSTEM == "slurmpadova":
+		username = "lpavesic"
 
 	#PARSE THE QUEUE
 	os.system('squeue -u {0} -o "%.200j %.12M" -h > statJobs.txt'.format(username))
