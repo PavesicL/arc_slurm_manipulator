@@ -471,7 +471,7 @@ def getJobsSlurm(regexName, WHICHSYSTEM):
 		username = "lpavesic"
 
 	elif WHICHSYSTEM == "slurmpadova":
-		username = "lpavesic"
+		username = "pavesic"
 
 	#PARSE THE QUEUE
 	os.system('squeue -u {0} -o "%.200j %.12M" -h > statJobs.txt'.format(username))
