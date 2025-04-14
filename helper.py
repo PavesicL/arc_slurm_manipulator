@@ -678,7 +678,8 @@ def sendSlurm(job, scriptname="SAMPLEscript"):
 	# write the script to the end of the batch script (sendJob file)
 	with open(f"{job_path}/sendJob", "a") as ff:
 		with open(scriptname, "r") as script:
-			ff.write(script)
+			for line in script:
+				ff.write(line)
 
 	#change the current directory to the job folder
 	os.chdir(job_path)
