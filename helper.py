@@ -251,7 +251,7 @@ def editInputFile(paramDict):
 				for p in paramDict.values(): 	#p.values() is a list, but we know that it only has a single element - the value of the parameter.
 
 					if re.search("^" + p.name + r"\s*=", line.strip()):
-						newF.write("	" + p.name + rf" = {p.values}\n")
+						newF.write("	" + p.name + f" = {p.values}\n")
 						written=True
 
 				if not written:
