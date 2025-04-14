@@ -117,9 +117,6 @@ class parameter:
 
 		return None
 
-
-
-
 #####################################################################################################
 
 def nameToRegex(name):
@@ -323,7 +320,8 @@ def writeBatchScript(batchDict, jobname, batchscriptname="sendJob", scriptname="
 			if "ml" in batchDict:
 				job.writelines("ml "+ batchDict["ml"] + "\n")
 
-			job.writelines("./{}\n".format(scriptname))
+			if scriptname is not None:
+				job.writelines(f"./{scriptname}\n")
 
 
 		else:
@@ -610,7 +608,7 @@ def sendArc(job, cluster_sub_host):
 
 	return None
 
-def sendSlurm(job, scriptname="SAMPLEscript"):
+def OLDsendSlurm(job, scriptname="SAMPLEscript"):
 	"""
 	Sends a job to slurm with sbatch.
 	scriptname is the name of the script.
@@ -643,6 +641,49 @@ def sendSlurm(job, scriptname="SAMPLEscript"):
 	os.chdir("results/{0}".format(job))
 	#sbatch to send job
 	os.system("sbatch sendJob".format(job))
+	#change the current directory back
+	os.chdir("../..")
+
+	return None
+
+def sendSlurm(job, scriptname="SAMPLEscript"):
+	"""
+	Sends a job to slurm with sbatch.
+	This is a new (APR 2025) version of the function, where
+	the script is appended at the end of the sendJob (sbatch file).
+
+	Previously the sendJob script would simply call ./script.
+	"""
+	job_path = f"results/{job}"
+
+	#check if the folder exists and remove it if it does
+	if os.path.exists(job_path):
+		#if it exists, the job has failed, remove it:
+		os.system(f"rm -rf {job_path}")
+
+	#make an empty folder
+	os.mkdir(job_path)
+
+	#get parameters and their values
+	paramDict = nameToParamsVals(job, nameFile="nameFile")
+
+	#write an input file and move it into the job folder
+	editInputFile(paramDict)
+	os.system(f"mv inputFile {job_path}/")
+
+	#write the batch script
+	batchDict = getBatchParamsNameFile("nameFile")
+	writeBatchScript(batchDict, job, scriptname=None)
+
+	# write the script to the end of the batch script (sendJob file)
+	with open(f"{job_path}/sendJob", "a") as ff:
+		with open(scriptname, "r") as script:
+			ff.write(script)
+
+	#change the current directory to the job folder
+	os.chdir(job_path)
+	#sbatch to send job
+	os.system("sbatch sendJob")
 	#change the current directory back
 	os.chdir("../..")
 
