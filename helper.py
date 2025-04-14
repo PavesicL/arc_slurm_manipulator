@@ -126,7 +126,7 @@ def nameToRegex(name):
 
 	# this glorious pattern matches either a string (the [A-Za-z]+ part),
 	# or a number. It can be integer, with a decimal point, or in the scientific notation (eg. 1e-05)
-	return re.sub("{[0-9]+}", "([A-Za-z]+|[+-]?[0-9]+(?:\.?[0-9]*(?:[eE][+-]?[0-9]+)?)?)", name)
+	return re.sub(r"{[0-9]+}", r"([A-Za-z]+|[+-]?[0-9]+(?:\.?[0-9]*(?:[eE][+-]?[0-9]+)?)?)", name)
 
 #####################################################################################################
 
@@ -145,13 +145,13 @@ def getParamsNameFile(file):
 			if len(line)==0:
 				continue
 
-			a = re.search("name\s*=\s*(.*)", line)
+			a = re.search(r"name\s*=\s*(.*)", line)
 
-			b = re.search("params\s*{", line)
-			c = re.search("}\s*endparams", line)
+			b = re.search(r"params\s*{", line)
+			c = re.search(r"}\s*endparams", line)
 
 			# this matches either two words (param, sweeptype) or three (param, sweeptype, type)
-			d = re.search("(\w+)\s*(\w+)(?:\s*(\w+))?", line)
+			d = re.search(r"(\w+)\s*(\w+)(?:\s*(\w+))?", line)
 
 			if line[0] == "#":	#this line is a comment
 				pass
@@ -250,8 +250,8 @@ def editInputFile(paramDict):
 				#iterate over all params - check if one of them matches the line, then overwrite it
 				for p in paramDict.values(): 	#p.values() is a list, but we know that it only has a single element - the value of the parameter.
 
-					if re.search("^"+p.name+"\s*=", line.strip()):
-						newF.write("	"+p.name+" = {0}\n".format(p.values))
+					if re.search("^" + p.name + r"\s*=", line.strip()):
+						newF.write("	" + p.name + rf" = {p.values}\n")
 						written=True
 
 				if not written:
@@ -336,7 +336,7 @@ def getDeltaFromNameFile(nameFile):
 
 	with open(nameFile, "r") as f:
 		for line in f:
-			a = re.search("DELTA\s*=\s*(.*)", line.strip())
+			a = re.search(r"DELTA\s*=\s*(.*)", line.strip())
 
 			if a:
 				DELTA = float(a.group(1))
@@ -481,7 +481,7 @@ def getJobsSlurm(regexName, WHICHSYSTEM):
 
 	#GET JOBS IN QUEUE
 	for entry in queue:
-		a = re.match("("+ regexName +")" + "\s*(\d?-?\d{,2}:\d{,2}:?\d*)", entry)	#This regex matches the time output in squeue
+		a = re.match("(" + regexName + ")" + r"\s*(\d?-?\d{,2}:\d{,2}:?\d*)", entry)	#This regex matches the time output in squeue
 		if a:
 			time = a.group(a.lastindex)
 			name = a.group(1)
