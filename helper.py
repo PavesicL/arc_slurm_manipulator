@@ -673,7 +673,7 @@ def sendSlurm(job, scriptname="SAMPLEscript"):
 
 	#write the batch script
 	batchDict = getBatchParamsNameFile("nameFile")
-	writeBatchScript(batchDict, job, scriptname=None)
+	writeBatchScript(batchDict, job, batchscriptname="sendJob", scriptname=None)
 
 	# write the script to the end of the batch script (sendJob file)
 	with open(f"{job_path}/sendJob", "a") as ff:
@@ -694,19 +694,22 @@ def continue_job(job, scriptname):
 	Continues the job - does not replace the folder, and runs
 	the script determined by scriptname.
 	"""
+	job_path = f"results/{job}"
+	new_script_name = "continueJob"
 
 	#check if the folder exists and complain if it does not
-	if not os.path.exists(f"results/{job}"):
-		print(f"The folder results/{job} does not exist. Ignoring.")
+	if not os.path.exists(job_path):
+		print(f"The folder {job_path} does not exist. Ignoring.")
 
 	else:
-		os.system(f"cp {scriptname} results/{job}/continueScript")
-
-		os.system(f"chmod +x results/{job}/continueScript")
-
 		batchDict = getBatchParamsNameFile("nameFile")
 		#write the batch script
-		writeBatchScript(batchDict, job, batchscriptname="continueJob", scriptname="continueScript")
+		writeBatchScript(batchDict, job, batchscriptname=new_script_name, scriptname="continueScript")
+
+		# write the script to the end of the batch script (sendJob file)
+		with open(f"{job_path}/{new_script_name}", "a") as ff:
+			with open(scriptname, "r") as script:
+				ff.write(script)
 
 		#change the current directory to the job folder
 		os.chdir(f"results/{job}")
