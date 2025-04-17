@@ -705,7 +705,7 @@ def continue_job(job, scriptname):
 	else:
 		batchDict = getBatchParamsNameFile("nameFile")
 		#write the batch script
-		writeBatchScript(batchDict, job, batchscriptname=new_script_name, scriptname="continueScript")
+		writeBatchScript(batchDict, job, batchscriptname=new_script_name, scriptname=None)
 
 		# write the script to the end of the batch script (sendJob file)
 		with open(f"{job_path}/{new_script_name}", "a") as ff:
